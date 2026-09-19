@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0a0a0a" />
+  <meta name="description" content="Carmina — a serene alarm clock with Sufi ringtones." />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="C A R M I N A" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32.png" />
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png" />
+  <title>C A R M I N A</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <script>
+    document.documentElement.dataset.theme = "dark";
+  </script>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="top-bar top-bar--center">
+      <h1 class="top-bar__title">Carmina</h1>
+    </header>
+
+    <section class="hero-alarm" aria-labelledby="hero-heading">
+      <h2 id="hero-heading" class="sr-only">Next alarm</h2>
+      <blockquote class="hero-quote" id="heroInteractionAff" lang="en"></blockquote>
+      <p class="hero-quote__lang" id="heroInteractionLang"></p>
+      <div class="hero-alarm__center">
+        <div class="hero-alarm__line" aria-hidden="true"></div>
+        <time class="hero-alarm__time" id="heroNextTime">—</time>
+        <div class="hero-alarm__line" aria-hidden="true"></div>
+      </div>
+      <p class="hero-alarm__sub" id="heroNextLabel">No alarms set</p>
+    </section>
+
+    <main class="alarm-scroll carmina-scroll">
+      <ul class="alarm-list" id="alarmList" role="list"></ul>
+      <p class="empty-state" id="emptyState">Tap + to create your first alarm.</p>
+    </main>
+
+    <button type="button" class="fab" id="btnNewAlarm" aria-label="New alarm">+</button>
+  </div>
+
+  <dialog class="sheet" id="alarmModal" aria-labelledby="modalTitle">
+    <form id="alarmForm" method="dialog" class="sheet__form">
+      <header class="sheet__header">
+        <h2 id="modalTitle">New alarm</h2>
+        <button type="button" class="sheet__close" id="btnCloseModal" aria-label="Close">&times;</button>
+      </header>
+
+      <div class="sheet__body carmina-scroll">
+        <div class="field">
+          <span class="field__label">Time</span>
+          <div class="time-select-row">
+            <select id="alarmHour" class="field__input field__input--time-part" aria-label="Hour"></select>
+            <span class="time-select-row__sep" aria-hidden="true">:</span>
+            <select id="alarmMinute" class="field__input field__input--time-part" aria-label="Minute"></select>
+            <select id="alarmPeriod" class="field__input field__input--time-part" aria-label="AM or PM">
+              <option value="AM">AM</option>
+              <option value="PM">PM</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="alarmLabel">Label</label>
+          <input type="text" id="alarmLabel" class="field__input" placeholder="Weekday shine…" maxlength="48" />
+        </div>
+
+        <div class="field">
+          <span class="field__label">Repeat</span>
+          <div class="day-row" id="dayPicker" role="group" aria-label="Repeat days">
+            <button type="button" class="day-dot" data-day="1" aria-pressed="false">M</button>
+            <button type="button" class="day-dot" data-day="2" aria-pressed="false">T</button>
+            <button type="button" class="day-dot" data-day="3" aria-pressed="false">W</button>
+            <button type="button" class="day-dot" data-day="4" aria-pressed="false">T</button>
+            <button type="button" class="day-dot" data-day="5" aria-pressed="false">F</button>
+            <button type="button" class="day-dot" data-day="6" aria-pressed="false">S</button>
+            <button type="button" class="day-dot" data-day="0" aria-pressed="false">S</button>
+          </div>
+          <p class="field__hint">Tap days to repeat. Leave all off for once.</p>
+        </div>
+
+        <div class="field">
+          <label for="alarmSnooze">Snooze</label>
+          <select id="alarmSnooze" class="field__input"></select>
+        </div>
+
+        <div class="field">
+          <label for="alarmTrack">Ringtone</label>
+          <div class="field__row">
+            <select id="alarmTrack" class="field__input"></select>
+            <button type="button" class="btn btn--gold-outline" id="btnPreview">Preview</button>
+          </div>
+          <div class="yt-player yt-player--preview" id="previewEmbed" hidden></div>
+        </div>
+      </div>
+
+      <footer class="sheet__footer">
+        <button type="button" class="btn btn--text" id="btnDeleteAlarm" hidden>Delete</button>
+        <div class="sheet__actions">
+          <button type="button" class="btn btn--text" id="btnCancel">Cancel</button>
+          <button type="submit" class="btn btn--gold">Save</button>
+        </div>
+      </footer>
+      <input type="hidden" id="alarmId" value="" />
+    </form>
+  </dialog>
+
+  <div class="alarm-overlay" id="alarmOverlay" hidden role="alertdialog" aria-modal="true" aria-labelledby="overlayInteractionAff">
+    <div class="alarm-overlay__inner">
+      <blockquote class="hero-quote hero-quote--overlay" id="overlayInteractionAff" lang="en"></blockquote>
+      <p class="hero-quote__lang" id="overlayInteractionLang"></p>
+      <div class="hero-alarm__center">
+        <div class="hero-alarm__line"></div>
+        <h2 class="hero-alarm__time" id="overlayTitle">—</h2>
+        <div class="hero-alarm__line"></div>
+      </div>
+      <p class="alarm-overlay__label" id="overlayLabel"></p>
+
+      <blockquote class="affirmation" id="overlayAffirmation" lang="en"></blockquote>
+      <p class="affirmation__lang" id="overlayAffLang"></p>
+
+      <div class="yt-player yt-player--overlay" id="overlayEmbed" hidden></div>
+
+      <div class="alarm-overlay__actions">
+        <button type="button" class="btn btn--gold" id="btnSnooze">Snooze</button>
+        <button type="button" class="btn btn--text-light" id="btnDismiss">Dismiss</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
