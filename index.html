@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#0a0a0a" />
   <meta name="description" content="Carmina — a serene alarm clock with Sufi ringtones." />
   <meta name="mobile-web-app-capable" content="yes" />
@@ -128,6 +128,12 @@
       <p class="affirmation__lang" id="overlayAffLang"></p>
 
       <div class="yt-player yt-player--overlay" id="overlayEmbed" hidden></div>
+      <p class="alarm-overlay__play-hint" id="overlayPlayHint" hidden>
+        iPhone requires one tap to start music. Tap the button below, then unmute the player if needed.
+      </p>
+      <button type="button" class="btn btn--gold btn--wide" id="btnStartMusic" hidden>
+        Tap to play ringtone
+      </button>
 
       <div class="alarm-overlay__actions">
         <button type="button" class="btn btn--gold" id="btnSnooze">Snooze</button>

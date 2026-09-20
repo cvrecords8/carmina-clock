@@ -19,20 +19,21 @@ export function getYouTubeVideoId(url) {
   return m ? m[1] : null;
 }
 
-/** @param {string} videoId */
-export function embedUrl(videoId) {
+/** @param {string} videoId @param {{ mute?: boolean }} opts */
+export function embedUrl(videoId, opts = {}) {
   const id = encodeURIComponent(videoId);
-  return `https://www.youtube.com/embed/${id}?autoplay=1&rel=0&loop=1&playlist=${id}`;
+  const mute = opts.mute ? 1 : 0;
+  return `https://www.youtube.com/embed/${id}?autoplay=1&mute=${mute}&rel=0&loop=1&playlist=${id}&playsinline=1&enablejsapi=1`;
 }
 
 /**
  * @param {{ youtubeUrl?: string, videoId?: string }} source
  * @returns {string | null}
  */
-export function buildEmbedSrc(source) {
+export function buildEmbedSrc(source, opts = {}) {
   const videoId = source.videoId || getYouTubeVideoId(source.youtubeUrl ?? "");
   if (!videoId) return null;
-  return embedUrl(videoId);
+  return embedUrl(videoId, opts);
 }
 
 export class YouTubeAlarmPlayer {
@@ -54,8 +55,9 @@ export class YouTubeAlarmPlayer {
    */
   play(source, opts = {}) {
     const surface = opts.surface ?? "alarm";
+    const { mute = false } = opts;
     const host = this.hosts[surface];
-    const src = buildEmbedSrc(source);
+    const src = buildEmbedSrc(source, { mute });
     this.stop();
 
     if (!src || !host) return { embedded: false };

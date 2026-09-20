@@ -12,8 +12,9 @@ import {
   getNextFireDate,
   shouldFireNow,
 } from "./scheduler.js";
-import { youtubePlayer } from "./youtube.js";
+import { getYouTubeVideoId, youtubePlayer } from "./youtube.js";
 import { applyTheme } from "./theme.js";
+import { isIOS } from "./platform.js";
 import {
   advanceInteractionAffirmation,
   renderAffirmation,
@@ -69,7 +70,12 @@ const el = {
   overlayEmbed: $("overlayEmbed"),
   btnSnooze: $("btnSnooze"),
   btnDismiss: $("btnDismiss"),
+  btnStartMusic: $("btnStartMusic"),
+  overlayPlayHint: $("overlayPlayHint"),
 };
+
+/** @type {{ videoId?: string, youtubeUrl?: string } | null} */
+let pendingAlarmTrack = null;
 
 function init() {
   populateTimeSelects();
@@ -171,6 +177,7 @@ function bindEvents() {
 
   el.btnSnooze.addEventListener("click", onSnooze);
   el.btnDismiss.addEventListener("click", onDismiss);
+  el.btnStartMusic.addEventListener("click", onStartAlarmMusic);
 }
 
 function refreshInteractionAffirmations() {
@@ -333,7 +340,12 @@ function openModal(id = null) {
     resetDayPicker();
   }
 
+  document.body.classList.add("modal-open");
   el.alarmModal.showModal();
+  requestAnimationFrame(() => {
+    const body = el.alarmModal.querySelector(".sheet__body");
+    if (body) body.scrollTop = 0;
+  });
 }
 
 function setPreviewOpen(open) {
@@ -343,6 +355,7 @@ function setPreviewOpen(open) {
 function closeModal() {
   setPreviewOpen(false);
   el.alarmModal.close();
+  document.body.classList.remove("modal-open");
   youtubePlayer.stop();
 }
 
@@ -419,9 +432,20 @@ function showAffirmation(item) {
   });
 }
 
+function onStartAlarmMusic() {
+  if (!pendingAlarmTrack) return;
+  youtubePlayer.play(pendingAlarmTrack, { surface: "alarm", mute: false });
+  el.btnStartMusic.hidden = true;
+  el.overlayPlayHint.hidden = true;
+}
+
 function fireAlarm(alarm) {
   ringingAlarm = alarm;
   const track = getTrackById(alarm.trackId);
+  pendingAlarmTrack = {
+    youtubeUrl: track.youtubeUrl,
+    videoId: getYouTubeVideoId(track.youtubeUrl),
+  };
 
   el.overlayLabel.textContent = alarm.label || "For you";
   el.overlayTitle.textContent = formatDisplayTime(alarm.time);
@@ -430,14 +454,27 @@ function fireAlarm(alarm) {
   stopAffirmations?.();
   stopAffirmations = startAffirmationCycle(showAffirmation, 7000);
 
-  youtubePlayer.play(track, { surface: "alarm" });
+  const needsTap = isIOS();
+  el.btnStartMusic.hidden = !needsTap;
+  el.overlayPlayHint.hidden = !needsTap;
+
+  if (needsTap) {
+    youtubePlayer.play(pendingAlarmTrack, { surface: "alarm", mute: true });
+  } else {
+    youtubePlayer.play(pendingAlarmTrack, { surface: "alarm", mute: false });
+  }
 
   if (prefs.notificationsEnabled && "Notification" in window && Notification.permission === "granted") {
-    new Notification("Carmina — " + (alarm.label || "Alarm"), {
+    const n = new Notification("Carmina — " + (alarm.label || "Alarm"), {
       body: formatDisplayTime(alarm.time),
       tag: "carmina-alarm",
       requireInteraction: true,
     });
+    n.onclick = () => {
+      window.focus();
+      el.alarmOverlay.hidden = false;
+      onStartAlarmMusic();
+    };
   }
 
   if (!alarm.days?.length) {
@@ -468,6 +505,9 @@ function clearAlarmUi() {
   youtubePlayer.stop();
   stopAffirmations?.();
   stopAffirmations = null;
+  pendingAlarmTrack = null;
+  el.btnStartMusic.hidden = true;
+  el.overlayPlayHint.hidden = true;
   el.alarmOverlay.hidden = true;
 }
 

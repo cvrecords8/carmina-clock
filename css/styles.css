@@ -54,6 +54,11 @@ body {
   background: var(--bg);
 }
 
+body.modal-open {
+  overflow: hidden;
+  touch-action: none;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;
@@ -335,15 +340,35 @@ html[data-theme="light"] .day-pill--on {
   padding: 0;
   max-width: 420px;
   width: 100%;
-  margin: auto auto 0;
+  margin: 0;
   background: var(--bg-elevated);
   color: var(--text);
-  max-height: min(92dvh, 640px);
+  max-height: calc(100dvh - env(safe-area-inset-top, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.sheet[open] {
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 420px;
 }
 
 .sheet::backdrop {
   background: rgba(0, 0, 0, 0.65);
   backdrop-filter: blur(4px);
+}
+
+.sheet__form {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  max-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  overflow: hidden;
 }
 
 .sheet__header {
@@ -352,6 +377,7 @@ html[data-theme="light"] .day-pill--on {
   justify-content: space-between;
   padding: 1.25rem 1.5rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
 }
 
 .sheet__header h2 {
@@ -413,8 +439,11 @@ html[data-theme="light"] .day-pill--on {
 }
 
 .sheet__body.carmina-scroll {
-  flex: 1;
-  min-height: 0;
+  flex: 1 1 auto;
+  min-height: 14rem;
+  max-height: none;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 .sheet--preview-open {
@@ -437,8 +466,10 @@ html[data-theme="light"] .day-pill--on {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem 1.5rem 1.25rem;
+  padding: 1rem 1.5rem calc(1.25rem + env(safe-area-inset-bottom, 0px));
   border-top: 1px solid rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+  background: var(--bg-elevated);
 }
 
 .sheet__actions {
@@ -669,6 +700,25 @@ html[data-theme="light"] .btn--gold-outline {
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--text-muted);
+}
+
+.alarm-overlay__play-hint {
+  margin: 0 0 0.75rem;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.alarm-overlay__play-hint[hidden],
+.btn--wide[hidden] {
+  display: none;
+}
+
+.btn--wide {
+  width: 100%;
+  max-width: 280px;
+  margin: 0 auto 1rem;
+  display: block;
 }
 
 .alarm-overlay__actions {
